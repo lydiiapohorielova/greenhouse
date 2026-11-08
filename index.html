@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Космічна Оранжерея: Клімат-Контроль</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-space: #030812;
+      --card-bg: #071224;
+      --card-inner: #091930;
+      --border-cyan: rgba(0, 242, 254, 0.35);
+      --cyan: #00f2fe;
+      --cyan-light: #38bdf8;
+      --text-main: #f0f6fc;
+      --text-muted: #547194;
+      --accent-amber: #ffb703;
+      --accent-green: #00f5a0;
+      --accent-red: #ff4d6d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      background-color: var(--bg-space);
+      background-image: 
+        radial-gradient(circle at 50% 0%, #0d274c 0%, transparent 70%),
+        radial-gradient(circle at 100% 100%, #071c36 0%, transparent 60%);
+      color: var(--text-main);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px 6px;
+    }
+
+    .station-console {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-cyan);
+      border-radius: 26px;
+      padding: 16px 14px;
+      box-shadow: 0 0 35px rgba(0, 242, 254, 0.12), inset 0 0 16px rgba(0, 242, 254, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    /* Верхня панель: ПРОГРЕС і лічильник */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+    }
+
+    .badge-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .task-counter {
+      font-family: 'Orbitron', monospace;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      width: 5%;
+      height: 100%;
+      background: linear-gradient(90deg, #00c6ff, var(--cyan));
+      box-shadow: 0 0 10px var(--cyan);
+      transition: width 0.3s ease;
+    }
+
+    /* Кроки 1-20 */
+    .steps-carousel {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 2px 6px 2px;
+      scrollbar-width: none;
+    }
+    .steps-carousel::-webkit-scrollbar { display: none; }
+
+    .step-pill {
+      flex: 0 0 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: all 0.25s;
+    }
+
+    .step-pill.active {
+      background: var(--cyan);
+      color: #030812;
+      font-weight: 900;
+      box-shadow: 0 0 12px var(--cyan);
+      border-color: #fff;
+      transform: scale(1.12);
+    }
+
+    .step-pill.done-1 {
+      border-color: var(--accent-green);
+      color: #030812;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px rgba(0, 245, 160, 0.5);
+      font-weight: 800;
+    }
+
+    .step-pill.done-2 {
+      border-color: var(--accent-amber);
+      color: #030812;
+      background: var(--accent-amber);
+      box-shadow: 0 0 8px rgba(255, 183, 3, 0.5);
+      font-weight: 800;
+    }
+
+    .step-pill.done-fail {
+      border-color: var(--accent-red);
+      color: #fff;
+      background: rgba(255, 77, 109, 0.2);
+    }
+
+    /* Основний контейнер */
+    .main-workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Підшапка */
+    .subhead-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px;
+    }
+
+    .plant-id-pill {
+      font-family: 'Orbitron', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--cyan);
+      background: rgba(0, 242, 254, 0.06);
+      border: 1.5px solid rgba(0, 242, 254, 0.4);
+      padding: 5px 12px;
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+    }
+
+    .station-status {
+      font-size: 12px;
+      font-weight: 700;
+      color: #17c9b8;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Банер біорежиму рослини */
+    .climate-hero-card {
+      background: var(--card-inner);
+      border: 1px solid rgba(0, 242, 254, 0.22);
+      border-radius: 18px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-icon-box {
+      width: 54px;
+      height: 54px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-plant-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.5));
+    }
+
+    .hero-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+
+    .hero-desc {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+      line-height: 1.3;
+    }
+
+    /* Ігрова зона: Термостат + Обчислити */
+    .gameplay-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 10px;
+    }
+
+    /* Ліва картка: ТЕРМОСТАТ */
+    .thermostat-card {
+      background: var(--card-inner);
+      border: 1px solid rgba(0, 242, 254, 0.22);
+      border-radius: 18px;
+      padding: 10px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .thermo-header-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    /* Інтерактивна зона термометра з простором під підпис */
+    .thermo-interactive-zone {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      height: 230px;
+      width: 100%;
+      position: relative;
+      padding-right: 4px;
+    }
+
+    /* Зона руху риски та бейджа (абсолютне позиціонування) */
+    .thermo-track-column {
+      position: relative;
+      width: 20px;
+      height: 210px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .thermo-tube-outer {
+      width: 18px;
+      height: 100%;
+      background: #030812;
+      border: 1.5px solid rgba(0, 242, 254, 0.5);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9);
+    }
+
+    .thermo-liquid-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background: linear-gradient(180deg, #00f2fe 0%, #1e88e5 60%, #0d47a1 100%);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.7);
+      transition: height 0.12s ease-out;
+    }
+
+    .thermo-zero-marker {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      background: #ffffff;
+      box-shadow: 0 0 6px #ffffff;
+      z-index: 4;
+    }
+
+    /* Повзунок: вертикальна риска + підпис температури ліворуч */
+    .cursor-assembly {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 0;
+      z-index: 10;
+      pointer-events: none;
+      transition: bottom 0.12s ease-out;
+    }
+
+    .cursor-vertical-bar {
+      position: absolute;
+      left: -6px;
+      top: -12px;
+      width: 3.5px;
+      height: 24px;
+      background: #ffffff;
+      box-shadow: 0 0 8px #ffffff, 0 0 12px var(--cyan);
+      border-radius: 2px;
+    }
+
+    /* Сам підпис з температурою ЛІВОРУЧ від повзунка */
+    .cursor-temp-label {
+      position: absolute;
+      right: 28px;
+      top: -12px;
+      background: #020712;
+      border: 1.5px solid var(--cyan);
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.6);
+      border-radius: 6px;
+      color: #ffffff;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 3px 6px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .cursor-temp-label::after {
+      content: '▶';
+      font-size: 8px;
+      color: var(--cyan);
+      margin-left: 2px;
+    }
+
+    /* Шкала праворуч */
+    .thermo-scale-text {
+      height: 210px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+      padding: 1px 0;
+    }
+
+    .scale-row {
+      font-family: 'Orbitron', monospace;
+      font-size: 8.5px;
+      font-weight: 700;
+      color: #39e39f;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .scale-row.zero-row {
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 9.5px;
+    }
+
+    .scale-row.cold-row {
+      color: #38bdf8;
+    }
+
+    /* Стрілки керування */
+    .thermo-controls-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .t-btn {
+      width: 32px;
+      height: 36px;
+      background: rgba(0, 242, 254, 0.08);
+      border: 1.5px solid rgba(0, 242, 254, 0.4);
+      border-radius: 8px;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: all 0.15s;
+    }
+
+    .t-btn:active {
+      background: var(--cyan);
+      color: #030812;
+      transform: scale(0.92);
+      box-shadow: 0 0 12px var(--cyan);
+    }
+
+    .shift-box {
+      background: rgba(2, 6, 15, 0.85);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: 6px;
+      padding: 2px 3px;
+      width: 34px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .shift-sub {
+      font-size: 7px;
+      font-family: 'Orbitron', monospace;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .shift-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .thermo-footer-hint {
+      font-size: 8.5px;
+      font-weight: 700;
+      color: #5d7c9e;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* Права картка: ОБЧИСЛИ ЗНАЧЕННЯ */
+    .compute-card {
+      background: var(--card-inner);
+      border: 1px solid rgba(0, 242, 254, 0.22);
+      border-radius: 18px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .compute-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--cyan-light);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .formula-cards-row {
+      display: flex;
+      gap: 5px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .num-plate {
+      flex: 1;
+      background: rgba(2, 6, 15, 0.85);
+      border: 1.5px solid rgba(0, 242, 254, 0.35);
+      border-radius: 12px;
+      padding: 8px 3px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .num-plate-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 7px;
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+
+    .label-cyan { color: var(--cyan); }
+    .label-amber { color: var(--accent-amber); }
+
+    .num-plate-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .val-start {
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+    }
+
+    .val-change {
+      color: var(--accent-amber);
+      text-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
+    }
+
+    /* Введення та кнопка */
+    .action-zone {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .answer-input {
+      width: 100%;
+      height: 46px;
+      background: #02060f;
+      border: 1.5px solid var(--border-cyan);
+      border-radius: 14px;
+      font-family: 'Orbitron', monospace;
+      font-size: 22px;
+      font-weight: 900;
+      color: #ffffff;
+      text-align: center;
+      outline: none;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.12), inset 0 0 10px rgba(0, 242, 254, 0.08);
+      transition: all 0.2s;
+    }
+
+    .answer-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    }
+
+    .answer-input::placeholder {
+      color: var(--cyan);
+      opacity: 0.5;
+    }
+
+    .btn-respond {
+      width: 100%;
+      height: 46px;
+      background: linear-gradient(180deg, #1b6ef3 0%, #0d4bc3 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      color: #ffffff;
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(13, 75, 195, 0.4);
+      transition: all 0.15s;
+    }
+
+    .btn-respond:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 10px rgba(13, 75, 195, 0.6);
+    }
+
+    /* Підказка в строчку */
+    .bot-speech-line {
+      width: 100%;
+      background: rgba(0, 242, 254, 0.05);
+      border-left: 3px solid var(--cyan);
+      border-radius: 4px 10px 10px 4px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: #d1dced;
+      box-sizing: border-box;
+    }
+
+    .bot-speech-line.error-state {
+      border-left-color: var(--accent-amber);
+      background: rgba(255, 183, 3, 0.08);
+      color: #fff;
+    }
+
+    .bot-speech-line.success-state {
+      border-left-color: var(--accent-green);
+      background: rgba(0, 245, 160, 0.08);
+      color: #fff;
+    }
+
+    /* Футер */
+    .footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px;
+    }
+
+    .bot-pill {
+      background: rgba(0, 242, 254, 0.08);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 4px 12px;
+      border-radius: 18px;
+      color: var(--cyan);
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .attempt-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .attempt-text strong {
+      color: var(--cyan);
+      font-weight: 800;
+    }
+
+    /* Фінальний екран */
+    .finish-screen {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      text-align: center;
+      padding: 10px 4px;
+    }
+
+    .finish-screen.active {
+      display: flex;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: var(--card-inner);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: 14px;
+      padding: 12px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 26px;
+      font-weight: 900;
+    }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.2;
+    }
+
+    .rank-pill {
+      background: rgba(0, 242, 254, 0.1);
+      border: 1.5px solid var(--cyan);
+      border-radius: 12px;
+      padding: 10px;
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="station-console">
+    <!-- Верхній рядок прогресу -->
+    <header class="header-bar">
+      <div class="badge-label">ПРОГРЕС</div>
+      <div class="task-counter" id="task-counter">1/20</div>
+    </header>
+
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+
+    <!-- Кроки завдань (1-20) -->
+    <nav class="steps-carousel" id="steps-carousel"></nav>
+
+    <!-- Основний блок гри -->
+    <div class="main-workspace" id="main-workspace">
+      <!-- Підшапка -->
+      <div class="subhead-bar">
+        <div class="plant-id-pill" id="plant-id-pill">Зразок: Рослина 1</div>
+        <div class="station-status">⚙ Оранжерея активна</div>
+      </div>
+
+      <!-- Банер клімат-контролю рослини -->
+      <section class="climate-hero-card">
+        <div class="hero-icon-box">
+          <svg class="hero-plant-svg" id="hero-plant-svg" viewBox="0 0 80 80"></svg>
+        </div>
+        <div class="hero-info">
+          <div class="hero-title">КЛІМАТ-КОНТРОЛЬ РОСЛИНИ</div>
+          <div class="hero-desc" id="hero-plant-desc">Очікування налаштування системи...</div>
+        </div>
+      </section>
+
+      <!-- Дві колонки: Термостат + Обчислення -->
+      <div class="gameplay-grid">
+        <!-- Ліва: Термостат -->
+        <section class="thermostat-card">
+          <div class="thermo-header-title">ТЕРМОСТАТ</div>
+          
+          <div class="thermo-interactive-zone">
+            <!-- Стовпчик термометра з повзунком та підписом -->
+            <div class="thermo-track-column">
+              <div class="thermo-tube-outer">
+                <div class="thermo-liquid-fill" id="thermo-liquid"></div>
+                <div class="thermo-zero-marker"></div>
+              </div>
+
+              <!-- Вузол повзунка: риска + блок з числом температури ліворуч -->
+              <div class="cursor-assembly" id="cursor-assembly">
+                <div class="cursor-temp-label" id="cursor-temp-label">-15°</div>
+                <div class="cursor-vertical-bar"></div>
+              </div>
+            </div>
+
+            <!-- Шкала праворуч -->
+            <div class="thermo-scale-text">
+              <div class="scale-row">— +20°</div>
+              <div class="scale-row">— +15°</div>
+              <div class="scale-row">— +10°</div>
+              <div class="scale-row">— +5°</div>
+              <div class="scale-row zero-row">— 0°</div>
+              <div class="scale-row cold-row">— -5°</div>
+              <div class="scale-row cold-row">— -10°</div>
+              <div class="scale-row cold-row">— -15°</div>
+              <div class="scale-row cold-row">— -20°</div>
+            </div>
+
+            <!-- Стрілки ▲, ▼, ЗСУВ, ↺ -->
+            <div class="thermo-controls-col">
+              <button class="t-btn" id="btn-up" aria-label="Вгору">▲</button>
+              <div class="shift-box">
+                <span class="shift-sub">ЗСУВ</span>
+                <span class="shift-num" id="shift-val">0</span>
+              </div>
+              <button class="t-btn" id="btn-down" aria-label="Вниз">▼</button>
+              <button class="t-btn" id="btn-reset" title="Скинути на старт" style="font-size: 15px;">↺</button>
+            </div>
+          </div>
+
+          <div class="thermo-footer-hint">Керування лише стрілками ▲ / ▼</div>
+        </section>
+
+        <!-- Права: Обчислення -->
+        <section class="compute-card">
+          <div class="compute-title">ОБЧИСЛИ ЗНАЧЕННЯ</div>
+
+          <div class="formula-cards-row">
+            <div class="num-plate">
+              <span class="num-plate-label label-cyan">ПОЧАТКОВА<br>ТЕМПЕРАТУРА</span>
+              <span class="num-plate-val val-start" id="plate-start">-15</span>
+            </div>
+            <div class="num-plate">
+              <span class="num-plate-label label-amber">ЗМІНА<br>ТЕМПЕРАТУРИ</span>
+              <span class="num-plate-val val-change" id="plate-change">+ 5</span>
+            </div>
+          </div>
+
+          <div class="action-zone">
+            <div class="input-box-wrapper">
+              <input type="number" pattern="-?[0-9]*" class="answer-input" id="answer-input" placeholder="?" autocomplete="off">
+            </div>
+            <button class="btn-respond" id="btn-respond">ВІДПОВІСТИ</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Підказка в строчку -->
+      <div class="bot-speech-line" id="bot-speech">
+        🤖 Визнач нову температуру: скористайся стрілками або обчисли результат у полі вводу.
+      </div>
+    </div>
+
+    <!-- Фінальна статистика -->
+    <section class="finish-screen" id="finish-screen">
+      <h2 style="font-family: 'Orbitron'; color: var(--cyan); font-size: 20px;">ОРАНЖЕРЕЮ ВРЯТОВАНО!</h2>
+      <div class="rank-pill" id="rank-badge">Звання: Старший Біоінженер Станції</div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" style="color: var(--accent-green);" id="stat-first">0</div>
+          <div class="stat-sub">З першої спроби (самостійно)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color: var(--accent-amber);" id="stat-second">0</div>
+          <div class="stat-sub">З другої спроби (з термометром)</div>
+        </div>
+        <div class="stat-card" style="grid-column: span 2;">
+          <div class="stat-val" style="color: var(--accent-red);" id="stat-fail">0</div>
+          <div class="stat-sub">Підказала автоматика станції</div>
+        </div>
+      </div>
+
+      <button class="btn-respond" onclick="location.reload()">ПРОЙТИ ЗНОВУ</button>
+    </section>
+
+    <!-- Футер -->
+    <footer class="footer-bar">
+      <div class="bot-pill">🤖 Мат-Бот</div>
+      <div class="attempt-text">Спроба: <strong id="attempt-val">1</strong> / 2</div>
+    </footer>
+  </main>
+
+  <script>
+    const tasks = [
+      { start: -15, changeText: '+ 5',       netChange: 5 },
+      { start: -8,  changeText: '+ 12',      netChange: 12 },
+      { start: 4,   changeText: '+ (-9)',    netChange: -9 },
+      { start: -3,  changeText: '+ (-7)',    netChange: -7 },
+      { start: -6,  changeText: '- (-4)',    netChange: 4 },
+      { start: -12, changeText: '+ 6',       netChange: 6 },
+      { start: 7,   changeText: '- 14',      netChange: -14 },
+      { start: -5,  changeText: '+ 15',      netChange: 15 },
+      { start: -10, changeText: '+ (-4)',    netChange: -4 },
+      { start: 0,   changeText: '- 11',      netChange: -11 },
+      { start: -18, changeText: '+ 8',       netChange: 8 },
+      { start: 10,  changeText: '- 15',      netChange: -15 },
+      { start: -4,  changeText: '- 6',       netChange: -6 },
+      { start: -2,  changeText: '- (-8)',    netChange: 8 },
+      { start: 5,   changeText: '- 12',      netChange: -12 },
+      { start: -9,  changeText: '- (-5)',    netChange: 5 },
+      { start: 3,   changeText: '- (-7)',    netChange: 7 },
+      { start: -14, changeText: '- (-6)',    netChange: 6 },
+      { start: 8,   changeText: '- 18',      netChange: -18 },
+      { start: -16, changeText: '+ 16',      netChange: 16 }
+    ];
+
+    let currentIndex = 0;
+    let currentAttempt = 1;
+    let currentTemp = -15;
+    let initialTempForTask = -15;
+
+    let stats = { first: 0, second: 0, fail: 0 };
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, type = 'sine', duration = 0.08) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function soundSuccess() {
+      playTone(523.25, 'sine', 0.1);
+      setTimeout(() => playTone(659.25, 'sine', 0.12), 80);
+      setTimeout(() => playTone(783.99, 'sine', 0.22), 160);
+    }
+
+    function soundFail() {
+      playTone(280, 'sawtooth', 0.14);
+      setTimeout(() => playTone(210, 'sawtooth', 0.22), 120);
+    }
+
+    // Індикатори 1-20
+    const carousel = document.getElementById('steps-carousel');
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.className = `step-pill ${i === 0 ? 'active' : ''}`;
+      p.id = `pill-${i}`;
+      p.innerText = i + 1;
+      carousel.appendChild(p);
+    }
+
+    function renderPlantGraphic(index) {
+      const c = '#00f2fe';
+      const glow = 'rgba(0, 242, 254, 0.8)';
+      const svg = document.getElementById('hero-plant-svg');
+      const variant = index % 4;
+
+      let petals = '';
+      if (variant === 0) {
+        petals = `
+          <ellipse cx="40" cy="28" rx="8" ry="14" fill="${c}" filter="drop-shadow(0 0 6px ${glow})"/>
+          <ellipse cx="26" cy="34" rx="7" ry="12" fill="${c}" transform="rotate(-30 26 34)"/>
+          <ellipse cx="54" cy="34" rx="7" ry="12" fill="${c}" transform="rotate(30 54 34)"/>
+        `;
+      } else if (variant === 1) {
+        petals = `
+          <polygon points="40,16 32,32 48,32" fill="${c}" filter="drop-shadow(0 0 6px ${glow})"/>
+          <polygon points="26,30 20,44 34,40" fill="${c}"/>
+          <polygon points="54,30 46,40 60,44" fill="${c}"/>
+        `;
+      } else if (variant === 2) {
+        petals = `
+          <path d="M22 36 Q40 14 58 36 Q40 32 22 36 Z" fill="${c}" filter="drop-shadow(0 0 8px ${glow})"/>
+          <circle cx="34" cy="26" r="2.5" fill="#fff" opacity="0.8"/>
+          <circle cx="46" cy="26" r="2.5" fill="#fff" opacity="0.8"/>
+        `;
+      } else {
+        petals = `
+          <circle cx="40" cy="32" r="14" fill="none" stroke="${c}" stroke-width="2.5" stroke-dasharray="4,2"/>
+          <circle cx="40" cy="32" r="8" fill="${c}" filter="drop-shadow(0 0 8px ${glow})"/>
+        `;
+      }
+
+      svg.innerHTML = `
+        <ellipse cx="40" cy="68" rx="18" ry="4" fill="none" stroke="${c}" stroke-width="1.5"/>
+        <path d="M40 68 L40 42" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/>
+        ${petals}
+      `;
+    }
+
+    // Оновлення термометра та показника температури біля повзунка
+    function updateThermoState(t) {
+      currentTemp = Math.max(-20, Math.min(20, t));
+      const pct = ((currentTemp + 20) / 40) * 100;
+
+      // Стовпчик рідини
+      document.getElementById('thermo-liquid').style.height = `${pct}%`;
+
+      // Позиціонування всього вузла повзунка
+      const assembly = document.getElementById('cursor-assembly');
+      assembly.style.bottom = `${pct}%`;
+
+      // Текстовий напис температури
+      const label = document.getElementById('cursor-temp-label');
+      label.innerText = `${currentTemp > 0 ? '+' : ''}${currentTemp}°`;
+
+      // Лічильник зсуву відносно початкового положення
+      const shift = currentTemp - initialTempForTask;
+      const shiftEl = document.getElementById('shift-val');
+      shiftEl.innerText = (shift > 0 ? `+${shift}` : `${shift}`);
+      shiftEl.style.color = shift === 0 ? '#fff' : (shift > 0 ? 'var(--cyan)' : 'var(--accent-amber)');
+    }
+
+    function loadTask(idx) {
+      const task = tasks[idx];
+      currentAttempt = 1;
+      initialTempForTask = task.start;
+
+      document.getElementById('task-counter').innerText = `${idx + 1}/20`;
+      document.getElementById('progress-fill').style.width = `${((idx + 1) / 20) * 100}%`;
+      document.getElementById('plant-id-pill').innerText = `Зразок: Рослина ${idx + 1}`;
+      document.getElementById('attempt-val').innerText = '1';
+
+      document.getElementById('plate-start').innerText = task.start;
+      document.getElementById('plate-change').innerText = task.changeText;
+
+      const descEl = document.getElementById('hero-plant-desc');
+      if (task.netChange > 0) {
+        descEl.innerText = '❄️ Для цієї рослини занадто холодно, збільш температуру.';
+        descEl.style.color = 'var(--cyan)';
+      } else {
+        descEl.innerText = '🔥 Цій рослині спекотно, зменш температуру.';
+        descEl.style.color = 'var(--accent-amber)';
+      }
+
+      renderPlantGraphic(idx);
+
+      const inp = document.getElementById('answer-input');
+      inp.value = '';
+      inp.focus();
+
+      updateThermoState(task.start);
+
+      const botSpeech = document.getElementById('bot-speech');
+      botSpeech.className = 'bot-speech-line';
+      botSpeech.innerText = `🤖 Визнач нову температуру: скористайся стрілками або обчисли результат у полі вводу.`;
+
+      const activePill = document.getElementById(`pill-${idx}`);
+      if (activePill) activePill.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+    }
+
+    document.getElementById('btn-up').addEventListener('click', () => {
+      if (currentTemp < 20) {
+        playTone(340, 'sine', 0.04);
+        updateThermoState(currentTemp + 1);
+      }
+    });
+
+    document.getElementById('btn-down').addEventListener('click', () => {
+      if (currentTemp > -20) {
+        playTone(280, 'sine', 0.04);
+        updateThermoState(currentTemp - 1);
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      playTone(200, 'sine', 0.06);
+      updateThermoState(initialTempForTask);
+    });
+
+    function verifyAnswer() {
+      const inp = document.getElementById('answer-input');
+      const userNum = parseInt(inp.value.trim(), 10);
+      const task = tasks[currentIndex];
+      const correct = task.start + task.netChange;
+      const botSpeech = document.getElementById('bot-speech');
+
+      if (isNaN(userNum)) {
+        botSpeech.className = 'bot-speech-line error-state';
+        botSpeech.innerText = '⚠️ Введи результат у поле зі знаком питання!';
+        inp.focus();
+        return;
+      }
+
+      if (userNum === correct) {
+        soundSuccess();
+        botSpeech.className = 'bot-speech-line success-state';
+        botSpeech.innerHTML = `✨ Чудово! Фінальна температура дійсно <b>${correct}°C</b>. Зразок врятовано!`;
+
+        const pill = document.getElementById(`pill-${currentIndex}`);
+        pill.classList.remove('active');
+
+        if (currentAttempt === 1) {
+          stats.first++;
+          pill.classList.add('done-1');
+        } else {
+          stats.second++;
+          pill.classList.add('done-2');
+        }
+
+        setTimeout(advanceNext, 1400);
+      } else {
+        soundFail();
+
+        if (currentAttempt === 1) {
+          currentAttempt = 2;
+          document.getElementById('attempt-val').innerText = '2';
+
+          updateThermoState(task.start);
+
+          const dir = task.netChange > 0 ? 'вверх' : 'вниз';
+          const steps = Math.abs(task.netChange);
+
+          botSpeech.className = 'bot-speech-line error-state';
+          if (task.changeText.includes('- (-')) {
+            botSpeech.innerHTML = `⚠️ Мінус на мінус дає плюс! Перемісти повзунок <b>${dir} на ${steps}</b> стрілками та запиши отримане число.`;
+          } else {
+            botSpeech.innerHTML = `⚠️ Спробуй ще раз. Перемісти повзунок <b>${dir} на ${steps}</b> стрілками та запиши число, яке покаже риска термометра.`;
+          }
+
+          inp.value = '';
+          inp.focus();
+        } else {
+          stats.fail++;
+          const pill = document.getElementById(`pill-${currentIndex}`);
+          pill.classList.remove('active');
+          pill.classList.add('done-fail');
+
+          botSpeech.className = 'bot-speech-line error-state';
+          botSpeech.innerHTML = `❌ Правильна відповідь: <b>${correct}</b>. Автоматика станції встановила температуру.`;
+
+          updateThermoState(correct);
+          setTimeout(advanceNext, 2200);
+        }
+      }
+    }
+
+    function advanceNext() {
+      currentIndex++;
+      if (currentIndex < 20) {
+        const nextP = document.getElementById(`pill-${currentIndex}`);
+        nextP.classList.add('active');
+        loadTask(currentIndex);
+      } else {
+        document.getElementById('main-workspace').style.display = 'none';
+        const fin = document.getElementById('finish-screen');
+        fin.classList.add('active');
+
+        document.getElementById('stat-first').innerText = stats.first;
+        document.getElementById('stat-second').innerText = stats.second;
+        document.getElementById('stat-fail').innerText = stats.fail;
+
+        let rank = 'Головний Біоінженер Станції 🏆';
+        if (stats.first < 12) rank = 'Молодший Дослідник Клімату 🪐';
+        else if (stats.first < 17) rank = 'Спеціаліст Кріо-Лабораторії ❄️';
+        document.getElementById('rank-badge').innerText = `Звання: ${rank}`;
+      }
+    }
+
+    document.getElementById('btn-respond').addEventListener('click', verifyAnswer);
+    document.getElementById('answer-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') verifyAnswer();
+    });
+
+    loadTask(0);
+  </script>
+</body>
+</html>
